@@ -1,8 +1,14 @@
 import type { Tutor } from '../interfaces/tutor';
+import { apiGet } from './apiClient';
+import { getCurrentUserId } from './authService';
 
-// TODO: não existe endpoint em fiap-amandaba-dotnet para resolver o tutor a partir
-// do usuário autenticado (sem TutoresController/UsuariosController). Substituir
-// assim que essa ponte entre a API de auth e a API de domínio existir.
 export async function getCurrentTutor(): Promise<Tutor | null> {
-  return null;
+  const idUsuario = getCurrentUserId();
+  if (idUsuario === null) return null;
+
+  try {
+    return await apiGet<Tutor>(`/api/tutores/by-usuario/${idUsuario}`);
+  } catch {
+    return null;
+  }
 }
