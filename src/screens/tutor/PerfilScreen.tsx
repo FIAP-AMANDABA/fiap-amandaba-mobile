@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { CommonActions } from '@react-navigation/native';
@@ -9,22 +9,21 @@ import { usePerfil } from './usePerfil';
 import { InfoRow } from '../../components/InfoRow';
 import { EmptyState } from '../../components/EmptyState';
 import { ConfirmModal } from '../../components/ConfirmModal';
+import { logout } from '../../services/authService';
 import { formatCpf, formatPhone } from '../../services/formatUtils';
 import { formatDateBr } from '../../services/dateUtils';
 import { perfilStyles as styles } from '../../styles/tutor/perfil.styles';
 import { colors } from '../../styles/colors';
 
-type Mode = 'TUTOR' | 'VETERINARIO';
-
 type Props = BottomTabScreenProps<TutorTabParamList, 'Perfil'>;
 
 export default function PerfilScreen({ navigation }: Props) {
   const { tutor, loading } = usePerfil();
-  const [mode, setMode] = useState<Mode>('TUTOR');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logout();
     navigation.getParent()?.dispatch(
       CommonActions.reset({ index: 0, routes: [{ name: 'Welcome' }] })
     );
@@ -77,31 +76,6 @@ export default function PerfilScreen({ navigation }: Props) {
                   value={formatDateBr(tutor.dataNascimento)}
                   labelColor={colors.roseMuted}
                 />
-              </View>
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>MODO DE USO</Text>
-              <View style={styles.rolesRow}>
-                <TouchableOpacity
-                  style={[styles.roleCard, mode === 'TUTOR' && styles.roleCardSelected]}
-                  activeOpacity={0.8}
-                  onPress={() => setMode('TUTOR')}
-                >
-                  <Text style={[styles.roleTitle, mode === 'TUTOR' && styles.roleTitleSelected]}>TUTOR</Text>
-                  <Text style={styles.roleSubtitle}>cuido dos meus pets</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.roleCard, mode === 'VETERINARIO' && styles.roleCardSelected]}
-                  activeOpacity={0.8}
-                  onPress={() => setMode('VETERINARIO')}
-                >
-                  <Text style={[styles.roleTitle, mode === 'VETERINARIO' && styles.roleTitleSelected]}>
-                    VETERINÁRIO
-                  </Text>
-                  <Text style={styles.roleSubtitle}>atendo pacientes</Text>
-                </TouchableOpacity>
               </View>
             </View>
           </>
