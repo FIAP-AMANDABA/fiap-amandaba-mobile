@@ -5,14 +5,15 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { PetsStackParamList } from '../../../interfaces/navigation';
 import type { Especie } from '../../../interfaces/especie';
 import { getEspecies } from '../../../services/especieService';
-import { createPet } from '../../../services/petService';
+import { createPet, updatePet, getPetById } from '../../../services/petService';
 import { getCurrentTutor } from '../../../services/tutorService';
-import { parseBrDate } from '../../../services/dateUtils';
+import { parseBrDate, formatDateBr } from '../../../services/dateUtils';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { FormInput } from '../../../components/FormInput';
 import { PillSelector } from '../../../components/PillSelector';
 import { ToggleRow } from '../../../components/ToggleRow';
 import { GradientButton } from '../../../components/GradientButton';
+import { ConfirmModal } from '../../../components/ConfirmModal';
 import { petFormStyles as styles } from '../../../styles/tutor/petForm.styles';
 import { colors } from '../../../styles/colors';
 
@@ -24,9 +25,13 @@ const SEXO_OPTIONS = [
 
 type Props = NativeStackScreenProps<PetsStackParamList, 'PetForm'>;
 
-export default function PetFormScreen({ navigation }: Props) {
+export default function PetFormScreen({ navigation, route }: Props) {
+  const petId = route.params?.petId;
+  const isEditing = petId !== undefined;
+
   const [especies, setEspecies] = useState<Especie[]>([]);
   const [loadingEspecies, setLoadingEspecies] = useState(true);
+  const [loadingPet, setLoadingPet] = useState(isEditing);
 
   const [especieValue, setEspecieValue] = useState<string | null>(null);
   const [nome, setNome] = useState('');
@@ -38,6 +43,7 @@ export default function PetFormScreen({ navigation }: Props) {
   const [sexo, setSexo] = useState<string | null>(null);
   const [castrado, setCastrado] = useState(false);
 
+  const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,17 +66,63 @@ export default function PetFormScreen({ navigation }: Props) {
     };
   }, []);
 
-  const handleSubmit = async () => {
+  useEffect(() => {
+    if (!isEditing) return;
+    let cancelled = false;
+
+    getPetById(petId)
+      .then((pet) => {
+        if (cancelled) return;
+        setEspecieValue(String(pet.idEspecie));
+        setNome(pet.nome);
+        setFotoUrl(pet.fotoUrl ?? '');
+        setRaca(pet.raca ?? '');
+        setDataNascimento(formatDateBr(pet.dataNascimento) === '—' ? '' : formatDateBr(pet.dataNascimento));
+        setCor(pet.cor ?? '');
+        setMicrochip(pet.microchip ?? '');
+        setSexo(pet.sexo);
+        setCastrado(pet.castrado);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Erro ao carregar dados do pet.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingPet(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isEditing, petId]);
+
+  const validate = (): boolean => {
     setError(null);
 
     if (!especieValue) {
       setError('Selecione a espécie do pet.');
-      return;
+      return false;
     }
     if (!nome.trim()) {
       setError('Informe o nome do pet.');
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const submitPetData = () => ({
+    idEspecie: Number(especieValue),
+    nome: nome.trim(),
+    fotoUrl: fotoUrl.trim() || undefined,
+    raca: raca.trim() || undefined,
+    dataNascimento: parseBrDate(dataNascimento),
+    cor: cor.trim() || undefined,
+    microchip: microchip.trim() || undefined,
+    sexo: sexo ?? undefined,
+    castrado,
+  });
+
+  const handleCreate = async () => {
+    if (!validate()) return;
 
     const tutor = await getCurrentTutor();
     if (!tutor) {
@@ -80,17 +132,7 @@ export default function PetFormScreen({ navigation }: Props) {
 
     setSubmitting(true);
     try {
-      await createPet(tutor.idTutor, {
-        idEspecie: Number(especieValue),
-        nome: nome.trim(),
-        fotoUrl: fotoUrl.trim() || undefined,
-        raca: raca.trim() || undefined,
-        dataNascimento: parseBrDate(dataNascimento),
-        cor: cor.trim() || undefined,
-        microchip: microchip.trim() || undefined,
-        sexo: sexo ?? undefined,
-        castrado,
-      });
+      await createPet(tutor.idTutor, submitPetData());
       navigation.goBack();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao cadastrar pet.');
@@ -99,10 +141,40 @@ export default function PetFormScreen({ navigation }: Props) {
     }
   };
 
+  const handleEditPress = () => {
+    if (!validate()) return;
+    setShowConfirm(true);
+  };
+
+  const handleConfirmEdit = async () => {
+    if (!petId) return;
+
+    setSubmitting(true);
+    try {
+      await updatePet(petId, submitPetData());
+      setShowConfirm(false);
+      navigation.goBack();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao salvar alterações.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loadingPet) {
+    return (
+      <SafeAreaView style={styles.screen} edges={['top']}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator color={colors.purple} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <ScrollView contentContainerStyle={styles.container}>
-        <ScreenHeader title="CADASTRAR PET" onBack={() => navigation.goBack()} />
+        <ScreenHeader title={isEditing ? 'EDITAR PET' : 'CADASTRAR PET'} onBack={() => navigation.goBack()} />
 
         <View style={styles.fieldGroup}>
           <Text style={styles.fieldLabel}>ESPÉCIE *</Text>
@@ -144,11 +216,21 @@ export default function PetFormScreen({ navigation }: Props) {
 
         <View style={styles.submitButton}>
           <GradientButton
-            label={submitting ? 'ENVIANDO...' : 'FINALIZAR CADASTRO'}
-            onPress={submitting ? undefined : handleSubmit}
+            label={submitting ? 'ENVIANDO...' : isEditing ? 'SALVAR ALTERAÇÕES' : 'FINALIZAR CADASTRO'}
+            onPress={submitting ? undefined : isEditing ? handleEditPress : handleCreate}
           />
         </View>
       </ScrollView>
+
+      <ConfirmModal
+        visible={showConfirm}
+        title="Salvar alterações"
+        message={`Tem certeza que deseja salvar as alterações em ${nome || 'este pet'}?`}
+        confirmLabel={submitting ? 'SALVANDO...' : 'SALVAR'}
+        errorMessage={null}
+        onCancel={() => setShowConfirm(false)}
+        onConfirm={submitting ? () => {} : handleConfirmEdit}
+      />
     </SafeAreaView>
   );
 }

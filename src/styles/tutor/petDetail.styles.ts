@@ -107,6 +107,18 @@ export const petDetailStyles = StyleSheet.create({
     ...typography.bodySmall,
     color: colors.red,
   },
+  editButton: {
+    borderWidth: 1.5,
+    borderColor: colors.greenDark,
+    borderRadius: 12,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    marginTop: spacing.sm,
+  },
+  editButtonLabel: {
+    ...typography.label,
+    color: colors.greenDark,
+  },
   deleteButton: {
     borderWidth: 1.5,
     borderColor: colors.red,

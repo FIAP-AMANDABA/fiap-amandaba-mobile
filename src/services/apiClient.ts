@@ -29,6 +29,15 @@ export async function apiPost<TResponse>(path: string, body: unknown): Promise<T
   return parseResponse<TResponse>(response, 'POST', path);
 }
 
+export async function apiPut<TResponse>(path: string, body: unknown): Promise<TResponse> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return parseResponse<TResponse>(response, 'PUT', path);
+}
+
 export async function apiPatch<TResponse>(path: string, body: unknown): Promise<TResponse> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: 'PATCH',

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Pet } from '../../../interfaces/pet';
 import { getPetById } from '../../../services/petService';
 
@@ -6,12 +6,14 @@ interface PetDetailData {
   pet: Pet | null;
   loading: boolean;
   error: string | null;
+  reload: () => void;
 }
 
 export function usePetDetail(petId: number): PetDetailData {
   const [pet, setPet] = useState<Pet | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -31,7 +33,9 @@ export function usePetDetail(petId: number): PetDetailData {
     return () => {
       cancelled = true;
     };
-  }, [petId]);
+  }, [petId, reloadToken]);
 
-  return { pet, loading, error };
+  const reload = useCallback(() => setReloadToken((token) => token + 1), []);
+
+  return { pet, loading, error, reload };
 }

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { PetsStackParamList } from '../../../interfaces/navigation';
 import { usePetDetail } from './usePetDetail';
@@ -33,8 +34,14 @@ type Props = NativeStackScreenProps<PetsStackParamList, 'PetDetail'>;
 
 export default function PetDetailScreen({ route, navigation }: Props) {
   const { petId } = route.params;
-  const { pet, loading, error } = usePetDetail(petId);
+  const { pet, loading, error, reload } = usePetDetail(petId);
   const [activeTab, setActiveTab] = useState<TabKey>('resumo');
+
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload])
+  );
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -109,16 +116,26 @@ export default function PetDetailScreen({ route, navigation }: Props) {
         {activeTab === 'exames' && <ExamesTab petId={pet.idPet} />}
 
         {activeTab === 'resumo' && (
-          <TouchableOpacity
-            style={styles.deleteButton}
-            activeOpacity={0.8}
-            onPress={() => {
-              setDeleteError(null);
-              setShowDeleteConfirm(true);
-            }}
-          >
-            <Text style={styles.deleteButtonLabel}>EXCLUIR PET</Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              style={styles.editButton}
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate('PetForm', { petId: pet.idPet })}
+            >
+              <Text style={styles.editButtonLabel}>EDITAR PET</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.deleteButton}
+              activeOpacity={0.8}
+              onPress={() => {
+                setDeleteError(null);
+                setShowDeleteConfirm(true);
+              }}
+            >
+              <Text style={styles.deleteButtonLabel}>EXCLUIR PET</Text>
+            </TouchableOpacity>
+          </>
         )}
       </ScrollView>
 

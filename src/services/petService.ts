@@ -1,5 +1,5 @@
 import type { Pet } from '../interfaces/pet';
-import { apiGet, apiPost, apiPatch } from './apiClient';
+import { apiGet, apiPost, apiPut, apiPatch } from './apiClient';
 
 export interface CreatePetInput {
   idEspecie: number;
@@ -27,4 +27,8 @@ export function createPet(idTutor: number, data: CreatePetInput): Promise<Pet> {
 
 export function updatePetStatus(petId: number, status: 'ATIVO' | 'INATIVO'): Promise<void> {
   return apiPatch<void>(`/api/pets/${petId}/status`, { status });
+}
+
+export function updatePet(petId: number, data: CreatePetInput): Promise<void> {
+  return apiPut<void>(`/api/pets/${petId}`, data);
 }
