@@ -34,18 +34,6 @@ Ambas as APIs estão publicadas no Render e são consumidas diretamente pelo app
 
 Pré-requisitos: Node.js e npm instalados. Para rodar no celular, o app [Expo Go](https://expo.dev/go); para rodar no navegador, nenhuma ferramenta extra é necessária.
 
-```bash
-npm install
-npm run web
-```
-
-Ou, para escolher a plataforma (Android/iOS/Web) pelo menu do Expo:
-
-```bash
-npm install
-npm start
-```
-
 O app já se conecta automaticamente às APIs publicadas - não é necessário configurar nenhuma variável de ambiente. Como as APIs estão hospedadas no plano gratuito do Render, a primeira requisição após um período sem uso pode levar até ~60-90 segundos até o servidor "acordar".
 
 ## Escopo desta entrega (Sprint 3)
