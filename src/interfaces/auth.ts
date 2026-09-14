@@ -15,6 +15,15 @@ export interface RegisterRequest {
   password: string;
 }
 
-export interface AuthResponse {
-  token: string;
+// Login e cadastro devolvem o mesmo formato (UserResponse).
+export interface UserResponse {
+  id: number;
+  email: string;
+  dataNascimento: string;
+  nomeCompleto: string;
+  cpf: string;
+  telefone: string;
+  dataCadastro: string;
+  statusUsuario: string;
+  idTutor?: number;
 }

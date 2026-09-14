@@ -8,9 +8,13 @@ import { TutorTabNavigator } from './TutorTabNavigator';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export function RootNavigator() {
+interface RootNavigatorProps {
+  initialRouteName?: keyof RootStackParamList;
+}
+
+export function RootNavigator({ initialRouteName = 'Welcome' }: RootNavigatorProps) {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRouteName}>
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />

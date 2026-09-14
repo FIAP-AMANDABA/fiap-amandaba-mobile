@@ -1,12 +1,19 @@
-import type { LoginRequest, RegisterRequest, AuthResponse } from '../interfaces/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { LoginRequest, RegisterRequest, UserResponse } from '../interfaces/auth';
 
 // Publicada no Render — free tier "dorme" sem tráfego; a 1ª chamada após inatividade
 // pode levar dezenas de segundos até o serviço acordar.
 const API_BASE_URL = 'https://fiap-amandaba-java.onrender.com';
 
-async function request<TResponse>(path: string, body: unknown): Promise<TResponse> {
+const STORAGE_KEY = 'amandaba:currentUserId';
+
+// Id do usuário autenticado, guardado em memória e persistido no dispositivo
+// (AsyncStorage) para o usuário não precisar logar de novo toda vez que reabrir o app.
+let currentUserId: number | null = null;
+
+async function request(path: string, method: string, body: unknown): Promise<UserResponse> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: 'POST',
+    method,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
@@ -15,21 +22,38 @@ async function request<TResponse>(path: string, body: unknown): Promise<TRespons
     throw new Error(`Request to ${path} failed with status ${response.status}`);
   }
 
-  // /register responde com texto puro ("User registered"), não JSON — só /login
-  // devolve um objeto de verdade.
-  const text = await response.text();
-  if (!text) return undefined as TResponse;
-  try {
-    return JSON.parse(text) as TResponse;
-  } catch {
-    return text as unknown as TResponse;
-  }
+  return response.json();
 }
 
-export function login(data: LoginRequest): Promise<AuthResponse> {
-  return request<AuthResponse>('/api/auth/login', data);
+async function setCurrentUserId(id: number): Promise<void> {
+  currentUserId = id;
+  await AsyncStorage.setItem(STORAGE_KEY, String(id));
 }
 
-export function register(data: RegisterRequest): Promise<void> {
-  return request<void>('/api/auth/register', data);
+export async function login(data: LoginRequest): Promise<UserResponse> {
+  const user = await request('/api/auth/login', 'POST', data);
+  await setCurrentUserId(user.id);
+  return user;
+}
+
+export async function register(data: RegisterRequest): Promise<UserResponse> {
+  const user = await request('/api/auth/register', 'POST', data);
+  await setCurrentUserId(user.id);
+  return user;
+}
+
+export function getCurrentUserId(): number | null {
+  return currentUserId;
+}
+
+// Chamado uma vez, na inicialização do app, para restaurar a sessão salva.
+export async function restoreSession(): Promise<number | null> {
+  const stored = await AsyncStorage.getItem(STORAGE_KEY);
+  currentUserId = stored ? Number(stored) : null;
+  return currentUserId;
+}
+
+export async function logout(): Promise<void> {
+  currentUserId = null;
+  await AsyncStorage.removeItem(STORAGE_KEY);
 }

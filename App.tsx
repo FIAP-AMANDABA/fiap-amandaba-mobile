@@ -10,6 +10,7 @@ import {
 } from '@expo-google-fonts/poppins';
 import * as SplashScreen from 'expo-splash-screen';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { restoreSession } from './src/services/authService';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -20,14 +21,22 @@ export default function App() {
     Poppins_500Medium,
     Poppins_600SemiBold,
   });
+  const [sessionChecked, setSessionChecked] = React.useState(false);
+  const [hasSession, setHasSession] = React.useState(false);
 
   useEffect(() => {
-    if (fontsLoaded) {
+    restoreSession()
+      .then((userId) => setHasSession(userId !== null))
+      .finally(() => setSessionChecked(true));
+  }, []);
+
+  useEffect(() => {
+    if (fontsLoaded && sessionChecked) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, sessionChecked]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || !sessionChecked) {
     return null;
   }
 
@@ -35,7 +44,7 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <NavigationContainer>
-          <RootNavigator />
+          <RootNavigator initialRouteName={hasSession ? 'TutorRoot' : 'Welcome'} />
         </NavigationContainer>
       </SafeAreaProvider>
     </GestureHandlerRootView>
