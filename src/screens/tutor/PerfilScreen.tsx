@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,7 +8,6 @@ import type { TutorTabParamList } from '../../interfaces/navigation';
 import { usePerfil } from './usePerfil';
 import { InfoRow } from '../../components/InfoRow';
 import { EmptyState } from '../../components/EmptyState';
-import { ConfirmModal } from '../../components/ConfirmModal';
 import { logout } from '../../services/authService';
 import { formatCpf, formatPhone } from '../../services/formatUtils';
 import { formatDateBr } from '../../services/dateUtils';
@@ -19,8 +18,6 @@ type Props = BottomTabScreenProps<TutorTabParamList, 'Perfil'>;
 
 export default function PerfilScreen({ navigation }: Props) {
   const { tutor, loading } = usePerfil();
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleLogout = async () => {
     await logout();
@@ -84,31 +81,7 @@ export default function PerfilScreen({ navigation }: Props) {
         <TouchableOpacity style={styles.logoutButton} activeOpacity={0.8} onPress={handleLogout}>
           <Text style={styles.logoutLabel}>SAIR DA CONTA</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => {
-            setDeleteError(null);
-            setShowDeleteConfirm(true);
-          }}
-        >
-          <Text style={styles.deleteAccountLabel}>EXCLUIR CONTA</Text>
-        </TouchableOpacity>
       </ScrollView>
-
-      <ConfirmModal
-        visible={showDeleteConfirm}
-        title="Excluir conta"
-        message="Tem certeza que deseja excluir sua conta? Essa ação não pode ser desfeita."
-        confirmLabel="EXCLUIR"
-        errorMessage={deleteError}
-        onCancel={() => setShowDeleteConfirm(false)}
-        onConfirm={() =>
-          setDeleteError(
-            'A exclusão de conta ainda não é suportada pela API — peça para o time do Java criar um endpoint para isso.'
-          )
-        }
-      />
     </SafeAreaView>
   );
 }

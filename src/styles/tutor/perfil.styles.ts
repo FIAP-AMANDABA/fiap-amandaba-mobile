@@ -62,10 +62,4 @@ export const perfilStyles = StyleSheet.create({
     ...typography.label,
     color: colors.red,
   },
-  deleteAccountLabel: {
-    ...typography.label,
-    color: colors.red,
-    textAlign: 'center',
-    marginTop: -spacing.md,
-  },
 });
