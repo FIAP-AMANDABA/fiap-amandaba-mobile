@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { TutorTabParamList } from '../../interfaces/navigation';
 import { useHomeData } from './useHomeData';
@@ -17,7 +18,13 @@ import { colors } from '../../styles/colors';
 type Props = BottomTabScreenProps<TutorTabParamList, 'Inicio'>;
 
 export default function HomeScreen({ navigation }: Props) {
-  const { tutor, pets, upcomingDoses, cicloItems, loading, error } = useHomeData();
+  const { tutor, pets, upcomingDoses, cicloItems, loading, error, reload } = useHomeData();
+
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload])
+  );
 
   const petsAtivos = pets.filter((pet) => pet.status === 'ATIVO').length;
   const ciclosAtrasados = cicloItems.filter((item) => item.overdue).length;

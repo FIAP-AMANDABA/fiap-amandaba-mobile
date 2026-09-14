@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { CuidadosStackParamList } from '../../../interfaces/navigation';
 import { useTutorPets } from './useTutorPets';
@@ -15,7 +16,13 @@ import { colors } from '../../../styles/colors';
 type Props = NativeStackScreenProps<CuidadosStackParamList, 'CuidadosPicker'>;
 
 export default function CuidadosPickerScreen({ navigation }: Props) {
-  const { pets, loading, error } = useTutorPets();
+  const { pets, loading, error, reload } = useTutorPets();
+
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload])
+  );
 
   if (loading) {
     return (

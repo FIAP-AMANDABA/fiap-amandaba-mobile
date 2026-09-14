@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { PetsStackParamList } from '../../../interfaces/navigation';
 import { usePetsList } from './usePetsList';
@@ -14,7 +15,13 @@ import { colors } from '../../../styles/colors';
 type Props = NativeStackScreenProps<PetsStackParamList, 'PetsList'>;
 
 export default function PetsListScreen({ navigation }: Props) {
-  const { pets, pesos, loading, error, toggleStatus } = usePetsList();
+  const { pets, pesos, loading, error, toggleStatus, reload } = usePetsList();
+
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload])
+  );
 
   if (loading) {
     return (

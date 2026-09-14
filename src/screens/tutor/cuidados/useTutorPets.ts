@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Pet } from '../../../interfaces/pet';
 import { getCurrentTutor } from '../../../services/tutorService';
 import { getPetsByTutor } from '../../../services/petService';
@@ -7,12 +7,14 @@ interface TutorPetsData {
   pets: Pet[];
   loading: boolean;
   error: string | null;
+  reload: () => void;
 }
 
 export function useTutorPets(): TutorPetsData {
   const [pets, setPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -43,7 +45,9 @@ export function useTutorPets(): TutorPetsData {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadToken]);
 
-  return { pets, loading, error };
+  const reload = useCallback(() => setReloadToken((token) => token + 1), []);
+
+  return { pets, loading, error, reload };
 }

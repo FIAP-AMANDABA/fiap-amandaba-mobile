@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Pet } from '../../interfaces/pet';
 import type { Tutor } from '../../interfaces/tutor';
 import type { UpcomingDose, CicloItem } from '../../interfaces/home';
@@ -15,6 +15,7 @@ interface HomeData {
   cicloItems: CicloItem[];
   loading: boolean;
   error: string | null;
+  reload: () => void;
 }
 
 export function useHomeData(): HomeData {
@@ -24,6 +25,7 @@ export function useHomeData(): HomeData {
   const [cicloItems, setCicloItems] = useState<CicloItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,7 +70,9 @@ export function useHomeData(): HomeData {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadToken]);
 
-  return { tutor, pets, upcomingDoses, cicloItems, loading, error };
+  const reload = useCallback(() => setReloadToken((token) => token + 1), []);
+
+  return { tutor, pets, upcomingDoses, cicloItems, loading, error, reload };
 }
