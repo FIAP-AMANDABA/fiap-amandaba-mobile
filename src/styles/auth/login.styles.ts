@@ -52,20 +52,4 @@ export const loginStyles = StyleSheet.create({
     color: colors.green,
     textDecorationLine: 'underline',
   },
-  socialRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.md,
-    marginTop: spacing.xl,
-  },
-  socialButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 1.5,
-    borderColor: colors.green,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.white,
-  },
 });

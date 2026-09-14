@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, Image, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
+import { View, Text, Image, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../interfaces/navigation';
 import { FormInput } from '../../components/FormInput';
@@ -30,8 +29,6 @@ export default function LoginScreen({ navigation }: Props) {
 
     setSubmitting(true);
     try {
-      // TODO: guardar o token retornado (AsyncStorage/SecureStore) quando a API
-      // de domínio tiver como resolver o tutor a partir do usuário autenticado.
       await login({ email: email.trim(), password });
       navigation.reset({ index: 0, routes: [{ name: 'TutorRoot' }] });
     } catch (err) {
@@ -78,15 +75,6 @@ export default function LoginScreen({ navigation }: Props) {
           <Text style={styles.registerLink} onPress={() => navigation.navigate('Register')}>
             CADASTRO
           </Text>
-        </View>
-
-        <View style={styles.socialRow}>
-          <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
-            <FontAwesome5 name="google" size={18} color="#DB4437" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
-            <FontAwesome name="facebook" size={20} color="#1877F2" />
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
