@@ -6,11 +6,11 @@ import { typography } from '../../theme/typography';
 export const createLoginStyles = (c: Palette) =>
   StyleSheet.create({
     scroll: {
-      flexGrow: 1,
+      flex: 1,
       backgroundColor: c.background,
     },
     container: {
-      flex: 1,
+      flexGrow: 1,
       paddingHorizontal: spacing.lg,
       paddingBottom: spacing.xl,
     },
