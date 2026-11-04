@@ -13,3 +13,18 @@ export interface Exame {
   status: string;
   dataCadastro: string;
 }
+
+export type ExameStatus = 'SOLICITADO' | 'REALIZADO' | 'RESULTADO_DISPONIVEL';
+
+export interface CreateExameInput {
+  nome: string;
+  dataSolicitacao?: string;
+  dataRealizacao?: string;
+  veterinario?: string;
+  clinica?: string;
+  motivo?: string;
+  resultado?: string;
+  observacao?: string;
+  arquivo?: string;
+  status: ExameStatus;
+}

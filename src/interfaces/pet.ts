@@ -16,3 +16,15 @@ export interface Pet {
   dataCadastro: string;
   status: string;
 }
+
+export interface CreatePetInput {
+  idEspecie: number;
+  nome: string;
+  fotoUrl?: string;
+  raca?: string;
+  sexo?: string;
+  dataNascimento?: string;
+  cor?: string;
+  castrado: boolean;
+  microchip?: string;
+}

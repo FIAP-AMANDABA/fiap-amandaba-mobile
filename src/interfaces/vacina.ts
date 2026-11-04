@@ -22,3 +22,13 @@ export interface VacinaAplicacao {
   comprovante: string | null;
   dataCadastro: string;
 }
+
+export interface CreateVacinaAplicacaoInput {
+  idVacina: number;
+  dataAplicacao: string;
+  numeroDose?: number;
+  numeroLote?: string;
+  proximaDose?: string;
+  clinica?: string;
+  observacao?: string;
+}

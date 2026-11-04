@@ -9,3 +9,15 @@ export interface Alergia {
   observacao: string | null;
   dataCadastro: string;
 }
+
+export type AlergiaTipo = 'MEDICAMENTO' | 'ALIMENTO' | 'AMBIENTAL' | 'OUTRO';
+export type AlergiaGravidade = 'LEVE' | 'MODERADA' | 'GRAVE';
+
+export interface CreateAlergiaInput {
+  nome: string;
+  tipo?: AlergiaTipo;
+  dataIdentificacao?: string;
+  reacao?: string;
+  gravidade?: AlergiaGravidade;
+  observacao?: string;
+}

@@ -20,3 +20,19 @@ export interface Medicamento {
   observacao: string | null;
   dataCadastro: string;
 }
+
+export interface CreateMedicamentoInput {
+  nome: string;
+  motivo?: string;
+  dosagem?: number;
+  unidade?: string;
+  quantidade?: string;
+  frequencia?: string;
+  administracao?: string;
+  horario?: string;
+  dataInicio: string;
+  dataTermino?: string;
+  status: MedicamentoStatus;
+  prescricao?: string;
+  observacao?: string;
+}
