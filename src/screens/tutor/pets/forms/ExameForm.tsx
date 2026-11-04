@@ -58,15 +58,13 @@ export function ExameForm({ petId, onSuccess, record }: ExameFormProps) {
         placeholder="DATA DE SOLICITAÇÃO  ·  dd/mm/aaaa"
         value={fields.dataSolicitacao}
         onChangeText={(value) => setField('dataSolicitacao', value)}
-        keyboardType="numeric"
-        maxLength={10}
+        mask="date"
       />
       <FormInput
         placeholder="DATA DE REALIZAÇÃO  ·  dd/mm/aaaa"
         value={fields.dataRealizacao}
         onChangeText={(value) => setField('dataRealizacao', value)}
-        keyboardType="numeric"
-        maxLength={10}
+        mask="date"
       />
       <FormInput
         placeholder="VETERINÁRIO"

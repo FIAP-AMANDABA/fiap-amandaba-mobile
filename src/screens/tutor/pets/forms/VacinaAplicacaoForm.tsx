@@ -66,8 +66,7 @@ export function VacinaAplicacaoForm({ petId, onSuccess, record }: VacinaAplicaca
         placeholder="DATA DE APLICAÇÃO *  ·  dd/mm/aaaa"
         value={fields.dataAplicacao}
         onChangeText={(value) => setField('dataAplicacao', value)}
-        keyboardType="numeric"
-        maxLength={10}
+        mask="date"
       />
       <FormInput
         placeholder="NÚMERO DA DOSE  ·  ex. 1"
@@ -85,8 +84,7 @@ export function VacinaAplicacaoForm({ petId, onSuccess, record }: VacinaAplicaca
         placeholder="PRÓXIMA DOSE  ·  dd/mm/aaaa"
         value={fields.proximaDose}
         onChangeText={(value) => setField('proximaDose', value)}
-        keyboardType="numeric"
-        maxLength={10}
+        mask="date"
       />
       <FormInput
         placeholder="CLÍNICA"

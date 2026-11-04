@@ -54,8 +54,7 @@ export function DoencaForm({ petId, onSuccess, record }: DoencaFormProps) {
         placeholder="DATA DE DIAGNÓSTICO  ·  dd/mm/aaaa"
         value={fields.dataDiagnostico}
         onChangeText={(value) => setField('dataDiagnostico', value)}
-        keyboardType="numeric"
-        maxLength={10}
+        mask="date"
       />
 
       <View style={styles.fieldGroup}>

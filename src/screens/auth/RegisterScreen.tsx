@@ -97,8 +97,7 @@ export default function RegisterScreen({ navigation }: Props) {
             placeholder="DATA DE NASCIMENTO:  ·  dd/mm/aaaa"
             value={birthDate}
             onChangeText={setBirthDate}
-            keyboardType="numeric"
-            maxLength={10}
+            mask="date"
           />
           <FormInput
             placeholder="E-MAIL:"

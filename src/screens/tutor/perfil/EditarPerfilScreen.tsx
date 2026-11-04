@@ -119,8 +119,7 @@ export default function EditarPerfilScreen({ navigation }: Props) {
           placeholder="DATA DE NASCIMENTO *  ·  dd/mm/aaaa"
           value={fields.dataNascimento}
           onChangeText={(value) => setField('dataNascimento', value)}
-          keyboardType="numeric"
-          maxLength={10}
+          mask="date"
         />
         {isVet && (
           <FormInput

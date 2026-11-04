@@ -62,8 +62,7 @@ export function ConsultaForm({ petId, onSuccess, record }: ConsultaFormProps) {
         placeholder="DATA DA CONSULTA *  ·  dd/mm/aaaa"
         value={fields.dataConsulta}
         onChangeText={(value) => setField('dataConsulta', value)}
-        keyboardType="numeric"
-        maxLength={10}
+        mask="date"
       />
       <FormInput
         placeholder="HORÁRIO  ·  ex. 14:30"
@@ -140,8 +139,7 @@ export function ConsultaForm({ petId, onSuccess, record }: ConsultaFormProps) {
           placeholder="DATA DO RETORNO  ·  dd/mm/aaaa"
           value={fields.dataRetorno}
           onChangeText={(value) => setField('dataRetorno', value)}
-          keyboardType="numeric"
-          maxLength={10}
+          mask="date"
         />
       )}
 

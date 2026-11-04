@@ -55,8 +55,7 @@ export function PesoForm({ petId, record, onSuccess }: PesoFormProps) {
         placeholder="DATA DA MEDIÇÃO *  ·  dd/mm/aaaa"
         value={fields.dataMedicao}
         onChangeText={(value) => setFields((current) => ({ ...current, dataMedicao: value }))}
-        keyboardType="numeric"
-        maxLength={10}
+        mask="date"
       />
 
       {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}

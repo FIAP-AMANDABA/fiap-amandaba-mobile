@@ -96,15 +96,13 @@ export function MedicamentoForm({ petId, onSuccess, record }: MedicamentoFormPro
         placeholder="DATA DE INÍCIO *  ·  dd/mm/aaaa"
         value={fields.dataInicio}
         onChangeText={(value) => setField('dataInicio', value)}
-        keyboardType="numeric"
-        maxLength={10}
+        mask="date"
       />
       <FormInput
         placeholder="DATA DE TÉRMINO  ·  dd/mm/aaaa"
         value={fields.dataTermino}
         onChangeText={(value) => setField('dataTermino', value)}
-        keyboardType="numeric"
-        maxLength={10}
+        mask="date"
       />
 
       <View style={styles.fieldGroup}>

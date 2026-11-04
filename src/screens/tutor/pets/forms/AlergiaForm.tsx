@@ -68,8 +68,7 @@ export function AlergiaForm({ petId, onSuccess, record }: AlergiaFormProps) {
         placeholder="DATA DE IDENTIFICAÇÃO  ·  dd/mm/aaaa"
         value={fields.dataIdentificacao}
         onChangeText={(value) => setField('dataIdentificacao', value)}
-        keyboardType="numeric"
-        maxLength={10}
+        mask="date"
       />
       <FormInput
         placeholder="REAÇÃO"
