@@ -33,6 +33,13 @@
           "color": "#6FA855"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "commitHash": "6fab958a5cc883e77d59adba8a19f0626fb40e3b",
+      "eas": {
+        "projectId": "6524937b-0db4-4a86-9998-e2a7ede20cb3"
+      }
+    },
+    "owner": "grazialencar"
   }
 }
