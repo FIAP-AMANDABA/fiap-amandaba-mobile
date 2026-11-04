@@ -14,7 +14,7 @@
     "android": {
       "package": "br.com.fiap.amandaba",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#F3F3E8",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -26,7 +26,14 @@
     },
     "plugins": [
       "expo-font",
-      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "backgroundColor": "#F3F3E8"
+        }
+      ],
       [
         "expo-notifications",
         {
