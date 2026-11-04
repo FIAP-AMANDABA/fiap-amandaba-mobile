@@ -1,8 +1,9 @@
-import React from 'react';
 import { View, Text, Switch, StyleSheet } from 'react-native';
-import { colors } from '../styles/colors';
-import { typography } from '../styles/typography';
-import { spacing } from '../styles/spacing';
+import type { Palette } from '../theme/palettes';
+import { useTheme } from '../theme/ThemeProvider';
+import { useThemedStyles } from '../theme/useThemedStyles';
+import { typography } from '../theme/typography';
+import { spacing } from '../theme/spacing';
 
 interface ToggleRowProps {
   label: string;
@@ -11,6 +12,9 @@ interface ToggleRowProps {
 }
 
 export function ToggleRow({ label, value, onChange }: ToggleRowProps) {
+  const styles = useThemedStyles(createStyles);
+  const { palette } = useTheme();
+
   return (
     <View style={styles.row}>
       <Text style={styles.label}>{label}</Text>
@@ -19,37 +23,38 @@ export function ToggleRow({ label, value, onChange }: ToggleRowProps) {
         <Switch
           value={value}
           onValueChange={onChange}
-          trackColor={{ false: colors.grayLight, true: colors.green }}
-          thumbColor={colors.white}
+          trackColor={{ false: palette.border, true: palette.green }}
+          thumbColor={palette.onColor}
         />
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: colors.green,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 10,
-  },
-  label: {
-    ...typography.label,
-    color: colors.black,
-  },
-  control: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  valueLabel: {
-    ...typography.body,
-    color: colors.gray,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: c.surface,
+      borderRadius: 8,
+      borderWidth: 1.5,
+      borderColor: c.green,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 10,
+    },
+    label: {
+      ...typography.label,
+      color: c.text,
+    },
+    control: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+    },
+    valueLabel: {
+      ...typography.body,
+      color: c.textMuted,
+    },
+  });

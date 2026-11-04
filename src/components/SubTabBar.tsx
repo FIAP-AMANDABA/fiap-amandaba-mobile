@@ -1,8 +1,8 @@
-import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { colors } from '../styles/colors';
-import { typography } from '../styles/typography';
-import { spacing } from '../styles/spacing';
+import type { Palette } from '../theme/palettes';
+import { useThemedStyles } from '../theme/useThemedStyles';
+import { typography } from '../theme/typography';
+import { spacing } from '../theme/spacing';
 
 interface SubTabBarProps<T extends string> {
   tabs: { key: T; label: string }[];
@@ -11,6 +11,8 @@ interface SubTabBarProps<T extends string> {
 }
 
 export function SubTabBar<T extends string>({ tabs, active, onChange }: SubTabBarProps<T>) {
+  const styles = useThemedStyles(createStyles);
+
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroll}>
       <View style={styles.row}>
@@ -29,29 +31,30 @@ export function SubTabBar<T extends string>({ tabs, active, onChange }: SubTabBa
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.grayLight,
-  },
-  row: {
-    flexDirection: 'row',
-  },
-  tab: {
-    paddingHorizontal: spacing.sm,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  tabActive: {
-    borderBottomColor: colors.greenDark,
-  },
-  label: {
-    ...typography.label,
-    fontSize: 13,
-    color: colors.gray,
-  },
-  labelActive: {
-    color: colors.greenDark,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    scroll: {
+      borderBottomWidth: 1,
+      borderBottomColor: c.border,
+    },
+    row: {
+      flexDirection: 'row',
+    },
+    tab: {
+      paddingHorizontal: spacing.sm,
+      paddingBottom: spacing.sm,
+      borderBottomWidth: 2,
+      borderBottomColor: 'transparent',
+    },
+    tabActive: {
+      borderBottomColor: c.greenDark,
+    },
+    label: {
+      ...typography.label,
+      fontSize: 13,
+      color: c.textMuted,
+    },
+    labelActive: {
+      color: c.greenDark,
+    },
+  });

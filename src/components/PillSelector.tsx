@@ -1,8 +1,8 @@
-import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { colors } from '../styles/colors';
-import { typography } from '../styles/typography';
-import { spacing } from '../styles/spacing';
+import type { Palette } from '../theme/palettes';
+import { useThemedStyles } from '../theme/useThemedStyles';
+import { typography } from '../theme/typography';
+import { spacing } from '../theme/spacing';
 
 interface PillOption {
   label: string;
@@ -16,6 +16,8 @@ interface PillSelectorProps {
 }
 
 export function PillSelector({ options, value, onChange }: PillSelectorProps) {
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View style={styles.row}>
       {options.map((option) => {
@@ -35,30 +37,31 @@ export function PillSelector({ options, value, onChange }: PillSelectorProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  pill: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 1.5,
-    borderColor: colors.grayLight,
-    backgroundColor: colors.white,
-  },
-  pillSelected: {
-    borderColor: colors.greenDark,
-    backgroundColor: '#E3F5DA',
-  },
-  label: {
-    ...typography.label,
-    fontSize: 12,
-    color: colors.gray,
-  },
-  labelSelected: {
-    color: colors.greenDark,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.sm,
+    },
+    pill: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: 8,
+      borderRadius: 999,
+      borderWidth: 1.5,
+      borderColor: c.border,
+      backgroundColor: c.surface,
+    },
+    pillSelected: {
+      borderColor: c.greenDark,
+      backgroundColor: c.selectedBg,
+    },
+    label: {
+      ...typography.label,
+      fontSize: 12,
+      color: c.textMuted,
+    },
+    labelSelected: {
+      color: c.greenDark,
+    },
+  });

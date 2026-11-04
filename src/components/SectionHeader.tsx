@@ -1,7 +1,7 @@
-import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors } from '../styles/colors';
-import { typography } from '../styles/typography';
+import type { Palette } from '../theme/palettes';
+import { useThemedStyles } from '../theme/useThemedStyles';
+import { typography } from '../theme/typography';
 
 interface SectionHeaderProps {
   title: string;
@@ -10,6 +10,8 @@ interface SectionHeaderProps {
 }
 
 export function SectionHeader({ title, actionLabel, onPressAction }: SectionHeaderProps) {
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View style={styles.row}>
       <Text style={styles.title}>{title}</Text>
@@ -22,18 +24,19 @@ export function SectionHeader({ title, actionLabel, onPressAction }: SectionHead
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: {
-    ...typography.label,
-    color: colors.black,
-  },
-  action: {
-    ...typography.bodySemiBold,
-    color: colors.green,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    title: {
+      ...typography.label,
+      color: c.text,
+    },
+    action: {
+      ...typography.bodySemiBold,
+      color: c.green,
+    },
+  });

@@ -1,8 +1,8 @@
-import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { colors } from '../styles/colors';
-import { typography } from '../styles/typography';
-import { spacing } from '../styles/spacing';
+import type { Palette } from '../theme/palettes';
+import { useThemedStyles } from '../theme/useThemedStyles';
+import { typography } from '../theme/typography';
+import { spacing } from '../theme/spacing';
 
 interface ConfirmModalProps {
   visible: boolean;
@@ -11,6 +11,7 @@ interface ConfirmModalProps {
   confirmLabel?: string;
   cancelLabel?: string;
   errorMessage?: string | null;
+  destructive?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -22,9 +23,12 @@ export function ConfirmModal({
   confirmLabel = 'CONFIRMAR',
   cancelLabel = 'CANCELAR',
   errorMessage,
+  destructive = true,
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
+  const styles = useThemedStyles(createStyles);
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
       <View style={styles.backdrop}>
@@ -36,7 +40,11 @@ export function ConfirmModal({
             <TouchableOpacity style={styles.cancelButton} activeOpacity={0.8} onPress={onCancel}>
               <Text style={styles.cancelLabel}>{cancelLabel}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.confirmButton} activeOpacity={0.8} onPress={onConfirm}>
+            <TouchableOpacity
+              style={[styles.confirmButton, !destructive && styles.confirmButtonPrimary]}
+              activeOpacity={0.8}
+              onPress={onConfirm}
+            >
               <Text style={styles.confirmLabel}>{confirmLabel}</Text>
             </TouchableOpacity>
           </View>
@@ -46,63 +54,68 @@ export function ConfirmModal({
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(26, 26, 26, 0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.lg,
-  },
-  card: {
-    width: '100%',
-    maxWidth: 360,
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  title: {
-    ...typography.heading,
-    fontSize: 18,
-    color: colors.black,
-  },
-  message: {
-    ...typography.body,
-    color: colors.gray,
-  },
-  errorText: {
-    ...typography.bodySmall,
-    color: colors.red,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  cancelButton: {
-    flex: 1,
-    borderWidth: 1.5,
-    borderColor: colors.grayLight,
-    borderRadius: 12,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-  },
-  cancelLabel: {
-    ...typography.label,
-    color: colors.gray,
-  },
-  confirmButton: {
-    flex: 1,
-    borderWidth: 1.5,
-    borderColor: colors.red,
-    backgroundColor: colors.red,
-    borderRadius: 12,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-  },
-  confirmLabel: {
-    ...typography.label,
-    color: colors.white,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    backdrop: {
+      flex: 1,
+      backgroundColor: c.overlay,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: spacing.lg,
+    },
+    card: {
+      width: '100%',
+      maxWidth: 360,
+      backgroundColor: c.surface,
+      borderRadius: 16,
+      padding: spacing.lg,
+      gap: spacing.sm,
+    },
+    title: {
+      ...typography.heading,
+      fontSize: 18,
+      color: c.text,
+    },
+    message: {
+      ...typography.body,
+      color: c.textMuted,
+    },
+    errorText: {
+      ...typography.bodySmall,
+      color: c.red,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      marginTop: spacing.sm,
+    },
+    cancelButton: {
+      flex: 1,
+      borderWidth: 1.5,
+      borderColor: c.border,
+      borderRadius: 12,
+      paddingVertical: spacing.sm,
+      alignItems: 'center',
+    },
+    cancelLabel: {
+      ...typography.label,
+      color: c.textMuted,
+    },
+    confirmButton: {
+      flex: 1,
+      borderWidth: 1.5,
+      borderColor: c.red,
+      backgroundColor: c.red,
+      borderRadius: 12,
+      paddingVertical: spacing.sm,
+      alignItems: 'center',
+    },
+    confirmButtonPrimary: {
+      borderColor: c.greenDark,
+      backgroundColor: c.greenDark,
+    },
+    confirmLabel: {
+      ...typography.label,
+      color: c.onColor,
+    },
+  });

@@ -1,37 +1,43 @@
-import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors } from '../styles/colors';
-import { typography } from '../styles/typography';
+import type { Palette } from '../theme/palettes';
+import { useThemedStyles } from '../theme/useThemedStyles';
+import { typography } from '../theme/typography';
 
 interface InfoRowProps {
   label: string;
   value: string;
-  labelColor?: string;
+  tinted?: boolean;
 }
 
-export function InfoRow({ label, value, labelColor }: InfoRowProps) {
+export function InfoRow({ label, value, tinted }: InfoRowProps) {
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View style={styles.row}>
-      <Text style={[styles.label, labelColor && { color: labelColor }]}>{label}</Text>
+      <Text style={[styles.label, tinted && styles.labelTinted]}>{label}</Text>
       <Text style={styles.value}>{value}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.grayLight,
-  },
-  label: {
-    ...typography.body,
-    color: colors.gray,
-  },
-  value: {
-    ...typography.bodySemiBold,
-    color: colors.black,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: c.border,
+    },
+    label: {
+      ...typography.body,
+      color: c.textMuted,
+    },
+    labelTinted: {
+      color: c.rose,
+    },
+    value: {
+      ...typography.bodySemiBold,
+      color: c.text,
+    },
+  });

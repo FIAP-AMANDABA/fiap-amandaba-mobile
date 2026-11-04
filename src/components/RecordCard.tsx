@@ -1,14 +1,13 @@
-import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { StatusBadge } from './StatusBadge';
-import { colors } from '../styles/colors';
-import { typography } from '../styles/typography';
-import { spacing } from '../styles/spacing';
+import type { Palette } from '../theme/palettes';
+import { useThemedStyles } from '../theme/useThemedStyles';
+import { typography } from '../theme/typography';
+import { spacing } from '../theme/spacing';
 
 interface RecordCardFooter {
   left: string;
   right?: string;
-  rightColor?: string;
 }
 
 interface RecordCardProps {
@@ -19,6 +18,8 @@ interface RecordCardProps {
 }
 
 export function RecordCard({ title, badge, lines, footer }: RecordCardProps) {
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -35,50 +36,48 @@ export function RecordCard({ title, badge, lines, footer }: RecordCardProps) {
       {footer && (
         <View style={styles.footer}>
           <Text style={styles.footerLeft}>{footer.left}</Text>
-          {footer.right && (
-            <Text style={[styles.footerRight, { color: footer.rightColor ?? colors.greenDark }]}>
-              {footer.right}
-            </Text>
-          )}
+          {footer.right && <Text style={styles.footerRight}>{footer.right}</Text>}
         </View>
       )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: spacing.md,
-    gap: 4,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: {
-    ...typography.label,
-    color: colors.black,
-    flexShrink: 1,
-  },
-  line: {
-    ...typography.bodySmall,
-    color: colors.gray,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  footerLeft: {
-    ...typography.bodySmall,
-    color: colors.gray,
-  },
-  footerRight: {
-    ...typography.bodySemiBold,
-    fontSize: 12,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: c.surface,
+      borderRadius: 12,
+      padding: spacing.md,
+      gap: 4,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    title: {
+      ...typography.label,
+      color: c.text,
+      flexShrink: 1,
+    },
+    line: {
+      ...typography.bodySmall,
+      color: c.textMuted,
+    },
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginTop: 4,
+    },
+    footerLeft: {
+      ...typography.bodySmall,
+      color: c.textMuted,
+    },
+    footerRight: {
+      ...typography.bodySemiBold,
+      fontSize: 12,
+      color: c.greenDark,
+    },
+  });

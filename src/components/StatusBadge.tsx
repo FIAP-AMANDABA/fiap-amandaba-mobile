@@ -1,25 +1,25 @@
-import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors } from '../styles/colors';
-import { typography } from '../styles/typography';
+import type { Palette } from '../theme/palettes';
+import { useTheme } from '../theme/ThemeProvider';
+import { typography } from '../theme/typography';
 
 const POSITIVE = ['ATIVO', 'EM_USO', 'DISPONIVEL', 'REALIZADA', 'RESULTADO_DISPONIVEL', 'CURADA'];
 const WARNING = ['MODERADA', 'LEVE', 'EM_TRATAMENTO', 'EM TRATAMENTO', 'PENDENTE'];
 const NEGATIVE = ['INATIVO', 'SUSPENSO', 'ATRASADO', 'GRAVE', 'CANCELADA'];
 
-function getBadgeColors(status: string): { bg: string; fg: string } {
+function getBadgeColors(status: string, c: Palette): { bg: string; fg: string } {
   const normalized = status.toUpperCase();
 
   if (POSITIVE.some((s) => normalized.includes(s))) {
-    return { bg: '#E3F5DA', fg: colors.greenDark };
+    return { bg: c.selectedBg, fg: c.greenDark };
   }
   if (WARNING.some((s) => normalized.includes(s))) {
-    return { bg: colors.tealLight, fg: '#3B7D79' };
+    return { bg: c.tealSurface, fg: c.tealText };
   }
   if (NEGATIVE.some((s) => normalized.includes(s))) {
-    return { bg: '#FBE6E3', fg: colors.red };
+    return { bg: c.redSurface, fg: c.red };
   }
-  return { bg: colors.grayLight, fg: colors.gray };
+  return { bg: c.border, fg: c.textMuted };
 }
 
 interface StatusBadgeProps {
@@ -27,11 +27,12 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status }: StatusBadgeProps) {
-  const { bg, fg } = getBadgeColors(status);
+  const { palette } = useTheme();
+  const { bg, fg } = getBadgeColors(status, palette);
 
   return (
     <View style={[styles.badge, { backgroundColor: bg }]}>
-      <Text style={[styles.text, { color: fg }]}>{status}</Text>
+      <Text style={[styles.text, { color: fg }]}>{status.replace(/_/g, ' ')}</Text>
     </View>
   );
 }
