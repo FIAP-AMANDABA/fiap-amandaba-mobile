@@ -1,17 +1,18 @@
 import { StyleSheet } from 'react-native';
-import { colors } from '../colors';
-import { spacing } from '../spacing';
+import type { Palette } from '../../theme/palettes';
+import { spacing } from '../../theme/spacing';
 
-export const petsListStyles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  container: {
-    padding: spacing.lg,
-    gap: spacing.md,
-  },
-  list: {
-    gap: spacing.sm,
-  },
-});
+export const createPetsListStyles = (c: Palette) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    container: {
+      padding: spacing.lg,
+      gap: spacing.md,
+    },
+    list: {
+      gap: spacing.sm,
+    },
+  });
