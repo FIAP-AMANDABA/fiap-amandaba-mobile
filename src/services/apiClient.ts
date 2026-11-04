@@ -1,48 +1,24 @@
-// Cliente para a API de domínio (fiap-amandaba-dotnet), separada da API de auth (fiap-amandaba-java).
-// Publicada no Render — free tier "dorme" sem tráfego; a 1ª chamada após inatividade
-// pode levar dezenas de segundos até o serviço acordar.
+import { httpRequest } from './http';
+
+// Render (plano gratuito): a primeira chamada após inatividade pode levar dezenas de segundos.
 const API_BASE_URL = 'https://fiap-amandaba-dotnet.onrender.com';
 
-async function parseResponse<TResponse>(response: Response, method: string, path: string): Promise<TResponse> {
-  if (!response.ok) {
-    throw new Error(`${method} ${path} failed with status ${response.status}`);
-  }
-
-  if (response.status === 204) {
-    return undefined as TResponse;
-  }
-
-  return response.json();
+export function apiGet<TResponse>(path: string, options?: { timeoutMs?: number }): Promise<TResponse> {
+  return httpRequest<TResponse>(API_BASE_URL, 'GET', path, undefined, options);
 }
 
-export async function apiGet<TResponse>(path: string): Promise<TResponse> {
-  const response = await fetch(`${API_BASE_URL}${path}`);
-  return parseResponse<TResponse>(response, 'GET', path);
+export function apiPost<TResponse>(path: string, body: unknown): Promise<TResponse> {
+  return httpRequest<TResponse>(API_BASE_URL, 'POST', path, body);
 }
 
-export async function apiPost<TResponse>(path: string, body: unknown): Promise<TResponse> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  return parseResponse<TResponse>(response, 'POST', path);
+export function apiPut<TResponse>(path: string, body: unknown): Promise<TResponse> {
+  return httpRequest<TResponse>(API_BASE_URL, 'PUT', path, body);
 }
 
-export async function apiPut<TResponse>(path: string, body: unknown): Promise<TResponse> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  return parseResponse<TResponse>(response, 'PUT', path);
+export function apiPatch<TResponse>(path: string, body: unknown): Promise<TResponse> {
+  return httpRequest<TResponse>(API_BASE_URL, 'PATCH', path, body);
 }
 
-export async function apiPatch<TResponse>(path: string, body: unknown): Promise<TResponse> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  return parseResponse<TResponse>(response, 'PATCH', path);
+export function apiDelete(path: string): Promise<void> {
+  return httpRequest<void>(API_BASE_URL, 'DELETE', path);
 }
