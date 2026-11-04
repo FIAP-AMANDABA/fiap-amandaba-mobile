@@ -1,10 +1,14 @@
-import React, { useCallback } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import type { TutorTabParamList } from '../../interfaces/navigation';
-import { useHomeData } from './useHomeData';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { InicioStackParamList, TutorTabParamList } from '../../interfaces/navigation';
+import { useHomeData } from '../../hooks/useHomeData';
+import { useTodayReminderCount } from '../../hooks/useReminders';
+import { useRelatorio } from '../../hooks/useRelatorio';
+import { PetHealthSummary } from '../../components/PetHealthSummary';
+import { NotificationBell } from '../../components/NotificationBell';
 import { StatCard } from '../../components/StatCard';
 import { CicloSemanaCard } from '../../components/CicloSemanaCard';
 import { SectionHeader } from '../../components/SectionHeader';
@@ -12,42 +16,36 @@ import { PetCard } from '../../components/PetCard';
 import { DoseListItem } from '../../components/DoseListItem';
 import { AiCarePlanCard } from '../../components/AiCarePlanCard';
 import { EmptyState } from '../../components/EmptyState';
-import { homeStyles as styles } from '../../styles/tutor/home.styles';
-import { colors } from '../../styles/colors';
+import { ScreenLoading } from '../../components/ScreenLoading';
+import { useThemedStyles } from '../../theme/useThemedStyles';
+import { createHomeStyles } from '../../styles/tutor/home.styles';
 
-type Props = BottomTabScreenProps<TutorTabParamList, 'Inicio'>;
+type Props = CompositeScreenProps<
+  NativeStackScreenProps<InicioStackParamList, 'Home'>,
+  BottomTabScreenProps<TutorTabParamList>
+>;
 
 export default function HomeScreen({ navigation }: Props) {
-  const { tutor, pets, upcomingDoses, cicloItems, loading, error, reload } = useHomeData();
+  const styles = useThemedStyles(createHomeStyles);
+  const { tutor, pets, petsAtivos, upcomingDoses, cicloItems, ciclosAtrasados, isLoading, errorMessage } =
+    useHomeData();
+  const remindersToday = useTodayReminderCount();
+  const { data: relatorio = [] } = useRelatorio();
 
-  useFocusEffect(
-    useCallback(() => {
-      reload();
-    }, [reload])
-  );
-
-  const petsAtivos = pets.filter((pet) => pet.status === 'ATIVO').length;
-  const ciclosAtrasados = cicloItems.filter((item) => item.overdue).length;
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.screen} edges={['top']}>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator color={colors.purple} />
-        </View>
-      </SafeAreaView>
-    );
-  }
+  if (isLoading) return <ScreenLoading />;
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.tutorLabel}>TUTOR · {tutor?.nome ?? '—'}</Text>
-          <Text style={styles.title}>MEUS PETS</Text>
+        <View style={styles.headerRow}>
+          <View style={styles.header}>
+            <Text style={styles.tutorLabel}>TUTOR · {tutor?.nome ?? '—'}</Text>
+            <Text style={styles.title}>MEUS PETS</Text>
+          </View>
+          <NotificationBell count={remindersToday} onPress={() => navigation.navigate('Lembretes')} />
         </View>
 
-        {error && <EmptyState message={error} />}
+        {errorMessage && <EmptyState message={errorMessage} />}
 
         <View style={styles.statsRow}>
           <StatCard value={petsAtivos} label="PETS ATIVOS" />
@@ -69,12 +67,32 @@ export default function HomeScreen({ navigation }: Props) {
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={styles.petsRow}>
                 {pets.map((pet) => (
-                  <PetCard key={pet.idPet} pet={pet} />
+                  <PetCard
+                    key={pet.idPet}
+                    pet={pet}
+                    onPress={() =>
+                      navigation.navigate('Pets', { screen: 'PetDetail', params: { petId: pet.idPet } })
+                    }
+                  />
                 ))}
               </View>
             </ScrollView>
           )}
         </View>
+
+        {relatorio.length > 0 && (
+          <View style={styles.section}>
+            <SectionHeader title="SAÚDE DOS PETS" />
+            <View style={styles.doseList}>
+              {relatorio.map((item) => (
+                <View key={item.idPet} style={styles.healthCard}>
+                  <Text style={styles.healthName}>{item.nomePet.toUpperCase()}</Text>
+                  <PetHealthSummary item={item} />
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         <View style={styles.section}>
           <SectionHeader title="PRÓXIMAS DOSES" />

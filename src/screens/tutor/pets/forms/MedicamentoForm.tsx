@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
 import { View, Text } from 'react-native';
-import { createMedicamento } from '../../../../services/medicamentoService';
-import { parseBrDate } from '../../../../services/dateUtils';
+import { useCreateMedicamento, useUpdateMedicamento } from '../../../../hooks/useClinico';
+import { useRecordForm } from '../../../../hooks/useRecordForm';
+import type { Medicamento } from '../../../../interfaces/medicamento';
+import { medicamentoToFields } from '../../../../domain/recordForms';
+import { buildMedicamentoInput, type MedicamentoFormFields } from '../../../../domain/recordInputs';
+import { FormFooter } from '../../../../components/FormFooter';
 import { FormInput } from '../../../../components/FormInput';
 import { PillSelector } from '../../../../components/PillSelector';
-import { GradientButton } from '../../../../components/GradientButton';
-import { petFormStyles as styles } from '../../../../styles/tutor/petForm.styles';
+import { useThemedStyles } from '../../../../theme/useThemedStyles';
+import { createPetFormStyles } from '../../../../styles/tutor/petForm.styles';
 
 const STATUS_OPTIONS = [
   { label: 'EM USO', value: 'EM_USO' },
@@ -13,119 +16,115 @@ const STATUS_OPTIONS = [
   { label: 'SUSPENSO', value: 'SUSPENSO' },
 ];
 
+const EMPTY_FIELDS: MedicamentoFormFields = {
+  nome: '',
+  motivo: '',
+  dosagem: '',
+  unidade: '',
+  frequencia: '',
+  administracao: '',
+  horarios: '',
+  dataInicio: '',
+  dataTermino: '',
+  status: null,
+  observacao: '',
+};
+
 interface MedicamentoFormProps {
   petId: number;
   onSuccess: () => void;
+  record?: Medicamento;
 }
 
-export function MedicamentoForm({ petId, onSuccess }: MedicamentoFormProps) {
-  const [nome, setNome] = useState('');
-  const [motivo, setMotivo] = useState('');
-  const [dosagem, setDosagem] = useState('');
-  const [unidade, setUnidade] = useState('');
-  const [frequencia, setFrequencia] = useState('');
-  const [administracao, setAdministracao] = useState('');
-  const [dataInicio, setDataInicio] = useState('');
-  const [dataTermino, setDataTermino] = useState('');
-  const [status, setStatus] = useState<string | null>(null);
-  const [observacao, setObservacao] = useState('');
-
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSubmit = async () => {
-    setError(null);
-
-    if (!nome.trim()) {
-      setError('Informe o nome do medicamento.');
-      return;
-    }
-    const dataInicioIso = parseBrDate(dataInicio);
-    if (!dataInicioIso) {
-      setError('Informe a data de início no formato dd/mm/aaaa.');
-      return;
-    }
-    if (!status) {
-      setError('Selecione o status.');
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      await createMedicamento(petId, {
-        nome: nome.trim(),
-        motivo: motivo.trim() || undefined,
-        dosagem: dosagem ? Number(dosagem) : undefined,
-        unidade: unidade.trim() || undefined,
-        frequencia: frequencia.trim() || undefined,
-        administracao: administracao.trim() || undefined,
-        dataInicio: dataInicioIso,
-        dataTermino: parseBrDate(dataTermino),
-        status: status as 'EM_USO' | 'CONCLUIDO' | 'SUSPENSO',
-        observacao: observacao.trim() || undefined,
-      });
-      onSuccess();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao registrar medicamento.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+export function MedicamentoForm({ petId, onSuccess, record }: MedicamentoFormProps) {
+  const styles = useThemedStyles(createPetFormStyles);
+  const { fields, setField, footer } = useRecordForm({
+    initial: record ? medicamentoToFields(record) : EMPTY_FIELDS,
+    build: buildMedicamentoInput,
+    create: useCreateMedicamento(petId),
+    update: useUpdateMedicamento(petId),
+    recordId: record?.idRegistroMedicamento,
+    errorFallback: 'Erro ao salvar medicamento.',
+    onSuccess,
+  });
 
   return (
     <>
-      <FormInput placeholder="NOME DO MEDICAMENTO *" value={nome} onChangeText={setNome} maxLength={250} />
-      <FormInput placeholder="MOTIVO" value={motivo} onChangeText={setMotivo} maxLength={500} />
-      <FormInput placeholder="DOSAGEM  ·  ex. 10" value={dosagem} onChangeText={setDosagem} keyboardType="numeric" />
-      <FormInput placeholder="UNIDADE  ·  ex. MG" value={unidade} onChangeText={setUnidade} maxLength={30} />
+      <FormInput
+        placeholder="NOME DO MEDICAMENTO *"
+        value={fields.nome}
+        onChangeText={(value) => setField('nome', value)}
+        maxLength={250}
+      />
+      <FormInput
+        placeholder="MOTIVO"
+        value={fields.motivo}
+        onChangeText={(value) => setField('motivo', value)}
+        maxLength={500}
+      />
+      <FormInput
+        placeholder="DOSAGEM  ·  ex. 10"
+        value={fields.dosagem}
+        onChangeText={(value) => setField('dosagem', value)}
+        keyboardType="numeric"
+      />
+      <FormInput
+        placeholder="UNIDADE  ·  ex. MG"
+        value={fields.unidade}
+        onChangeText={(value) => setField('unidade', value)}
+        maxLength={30}
+      />
       <FormInput
         placeholder="FREQUÊNCIA  ·  ex. A CADA 12H"
-        value={frequencia}
-        onChangeText={setFrequencia}
+        value={fields.frequencia}
+        onChangeText={(value) => setField('frequencia', value)}
         maxLength={100}
       />
       <FormInput
         placeholder="ADMINISTRAÇÃO  ·  ex. ORAL"
-        value={administracao}
-        onChangeText={setAdministracao}
+        value={fields.administracao}
+        onChangeText={(value) => setField('administracao', value)}
         maxLength={100}
       />
       <FormInput
+        placeholder="HORÁRIOS DOS LEMBRETES  ·  ex. 08:00, 20:00"
+        value={fields.horarios}
+        onChangeText={(value) => setField('horarios', value)}
+        maxLength={500}
+      />
+      <FormInput
         placeholder="DATA DE INÍCIO *  ·  dd/mm/aaaa"
-        value={dataInicio}
-        onChangeText={setDataInicio}
+        value={fields.dataInicio}
+        onChangeText={(value) => setField('dataInicio', value)}
         keyboardType="numeric"
         maxLength={10}
       />
       <FormInput
         placeholder="DATA DE TÉRMINO  ·  dd/mm/aaaa"
-        value={dataTermino}
-        onChangeText={setDataTermino}
+        value={fields.dataTermino}
+        onChangeText={(value) => setField('dataTermino', value)}
         keyboardType="numeric"
         maxLength={10}
       />
 
       <View style={styles.fieldGroup}>
         <Text style={styles.fieldLabel}>STATUS *</Text>
-        <PillSelector options={STATUS_OPTIONS} value={status} onChange={setStatus} />
+        <PillSelector
+          options={STATUS_OPTIONS}
+          value={fields.status}
+          onChange={(value) => setField('status', value)}
+        />
       </View>
 
       <FormInput
         placeholder="OBSERVAÇÃO"
-        value={observacao}
-        onChangeText={setObservacao}
+        value={fields.observacao}
+        onChangeText={(value) => setField('observacao', value)}
         maxLength={1000}
         multiline
       />
 
-      {error && <Text style={styles.errorText}>{error}</Text>}
-
-      <View style={styles.submitButton}>
-        <GradientButton
-          label={submitting ? 'ENVIANDO...' : 'REGISTRAR MEDICAMENTO'}
-          onPress={submitting ? undefined : handleSubmit}
-        />
-      </View>
+      <FormFooter {...footer} createLabel="REGISTRAR MEDICAMENTO" />
     </>
   );
 }

@@ -1,52 +1,59 @@
-import React, { useState } from 'react';
-import { View, Text, Image, ScrollView, StatusBar } from 'react-native';
+import { useState } from 'react';
+import { View, Text, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../interfaces/navigation';
 import { FormInput } from '../../components/FormInput';
 import { GradientButton } from '../../components/GradientButton';
-import { loginStyles as styles } from '../../styles/auth/login.styles';
-import { login } from '../../services/authService';
+import { buildLoginRequest } from '../../domain/authInputs';
+import { homeRouteFor } from '../../navigation/homeRoute';
+import { useLogin } from '../../hooks/useAuthMutations';
+import { useThemedStyles } from '../../theme/useThemedStyles';
+import { createLoginStyles } from '../../styles/auth/login.styles';
 
 const heroImage = require('../../../assets/images/hero-login.png');
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
-export default function LoginScreen({ navigation }: Props) {
+export default function LoginScreen({ navigation, route }: Props) {
+  const styles = useThemedStyles(createLoginStyles);
+  const loginMutation = useLogin();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    setError(null);
+    setValidationError(null);
 
-    if (!email.trim() || !password) {
-      setError('Informe e-mail e senha.');
+    const request = buildLoginRequest(email, password);
+    if (!request.ok) {
+      setValidationError(request.error);
       return;
     }
 
-    setSubmitting(true);
     try {
-      await login({ email: email.trim(), password });
-      navigation.reset({ index: 0, routes: [{ name: 'TutorRoot' }] });
-    } catch (err) {
-      setError('E-mail ou senha inválidos.');
-    } finally {
-      setSubmitting(false);
+      const session = await loginMutation.mutateAsync(request.input);
+      navigation.reset({ index: 0, routes: [{ name: homeRouteFor(session.role) }] });
+    } catch {
+      // a mensagem fica em loginMutation.error
     }
   };
 
+  const errorMessage = validationError ?? loginMutation.error?.message ?? null;
+
   return (
     <SafeAreaView style={styles.scroll} edges={['top']}>
-      <StatusBar barStyle="dark-content" />
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.hero}>
           <Image source={heroImage} style={styles.heroImage} resizeMode="contain" />
         </View>
 
         <Text style={styles.title}>ENTRAR</Text>
+
+        {route.params?.expired && (
+          <Text style={styles.noticeText}>Sua sessão expirou. Entre novamente para continuar.</Text>
+        )}
 
         <View style={styles.form}>
           <FormInput
@@ -64,10 +71,13 @@ export default function LoginScreen({ navigation }: Props) {
           />
         </View>
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
+        {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
         <View style={styles.submitButton}>
-          <GradientButton label={submitting ? 'ENTRANDO...' : 'ENTRAR'} onPress={submitting ? undefined : handleSubmit} />
+          <GradientButton
+            label={loginMutation.isPending ? 'ENTRANDO...' : 'ENTRAR'}
+            onPress={loginMutation.isPending ? undefined : handleSubmit}
+          />
         </View>
 
         <View style={styles.registerRow}>

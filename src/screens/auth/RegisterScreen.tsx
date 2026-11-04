@@ -1,68 +1,69 @@
-import React, { useState } from 'react';
-import { View, Text, Image, ScrollView, StatusBar } from 'react-native';
+import { useState } from 'react';
+import { View, Text, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../interfaces/navigation';
 import { FormInput } from '../../components/FormInput';
 import { GradientButton } from '../../components/GradientButton';
-import { registerStyles as styles } from '../../styles/auth/register.styles';
-import { register } from '../../services/authService';
-import { parseBrDate } from '../../services/dateUtils';
+import { PillSelector } from '../../components/PillSelector';
+import type { RegisterVetRequest, UserRole } from '../../interfaces/auth';
+import { buildRegisterRequest, buildRegisterVetRequest } from '../../domain/authInputs';
+import { useRegister } from '../../hooks/useAuthMutations';
+import { useThemedStyles } from '../../theme/useThemedStyles';
+import { createRegisterStyles } from '../../styles/auth/register.styles';
 
 const heroImage = require('../../../assets/images/hero-register.png');
+
+const ROLE_OPTIONS = [
+  { label: 'TUTOR', value: 'TUTOR' },
+  { label: 'VETERINÁRIO', value: 'VETERINARIO' },
+];
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
 export default function RegisterScreen({ navigation }: Props) {
+  const styles = useThemedStyles(createRegisterStyles);
+  const registerMutation = useRegister();
+
+  const [role, setRole] = useState<UserRole>('TUTOR');
+  const [crmv, setCrmv] = useState('');
   const [fullName, setFullName] = useState('');
   const [cpf, setCpf] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    setError(null);
+    setValidationError(null);
 
-    if (!fullName.trim() || !email.trim() || !password || cpf.length !== 11) {
-      setError('Preencha nome, CPF (11 dígitos), e-mail e senha.');
+    const fields = { fullName, cpf, birthDate, email, phone, password };
+    const request =
+      role === 'VETERINARIO'
+        ? buildRegisterVetRequest(fields, crmv)
+        : buildRegisterRequest(fields);
+    if (!request.ok) {
+      setValidationError(request.error);
       return;
     }
 
-    const dataNascimento = parseBrDate(birthDate);
-    if (birthDate && !dataNascimento) {
-      setError('Data de nascimento inválida. Use dd/mm/aaaa.');
-      return;
-    }
-
-    setSubmitting(true);
     try {
-      await register({
-        nomeCompleto: fullName.trim(),
-        cpf,
-        dataNascimento: dataNascimento ?? '',
-        email: email.trim(),
-        telefone: phone.trim(),
-        password,
-      });
-      navigation.navigate('Login');
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? `Não foi possível concluir o cadastro (${err.message}).`
-          : 'Não foi possível concluir o cadastro.'
+      await registerMutation.mutateAsync(
+        role === 'VETERINARIO'
+          ? { role, data: request.input as RegisterVetRequest }
+          : { role, data: request.input }
       );
-    } finally {
-      setSubmitting(false);
+      navigation.navigate('Login');
+    } catch {
+      // a mensagem fica em registerMutation.error
     }
   };
 
+  const errorMessage = validationError ?? registerMutation.error?.message ?? null;
+
   return (
     <SafeAreaView style={styles.scroll} edges={['top']}>
-      <StatusBar barStyle="dark-content" />
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.hero}>
           <Image source={heroImage} style={styles.heroImage} resizeMode="contain" />
@@ -71,6 +72,14 @@ export default function RegisterScreen({ navigation }: Props) {
         <Text style={styles.title}>CRIAR CONTA</Text>
 
         <View style={styles.form}>
+          <View style={styles.fieldGroup}>
+            <Text style={styles.fieldLabel}>EU SOU</Text>
+            <PillSelector
+              options={ROLE_OPTIONS}
+              value={role}
+              onChange={(value) => setRole(value as UserRole)}
+            />
+          </View>
           <FormInput
             placeholder="NOME COMPLETO:"
             value={fullName}
@@ -85,7 +94,7 @@ export default function RegisterScreen({ navigation }: Props) {
             maxLength={11}
           />
           <FormInput
-            placeholder="DATA DE NASCIMENTO:"
+            placeholder="DATA DE NASCIMENTO:  ·  dd/mm/aaaa"
             value={birthDate}
             onChangeText={setBirthDate}
             keyboardType="numeric"
@@ -104,6 +113,15 @@ export default function RegisterScreen({ navigation }: Props) {
             onChangeText={setPhone}
             keyboardType="phone-pad"
           />
+          {role === 'VETERINARIO' && (
+            <FormInput
+              placeholder="CRMV:  ·  ex. CRMV-SP 12345"
+              value={crmv}
+              onChangeText={setCrmv}
+              autoCapitalize="characters"
+              maxLength={20}
+            />
+          )}
           <FormInput
             placeholder="SENHA:"
             value={password}
@@ -112,12 +130,12 @@ export default function RegisterScreen({ navigation }: Props) {
           />
         </View>
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
+        {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
         <View style={styles.submitButton}>
           <GradientButton
-            label={submitting ? 'ENVIANDO...' : 'FINALIZAR CADASTRO'}
-            onPress={submitting ? undefined : handleSubmit}
+            label={registerMutation.isPending ? 'ENVIANDO...' : 'FINALIZAR CADASTRO'}
+            onPress={registerMutation.isPending ? undefined : handleSubmit}
           />
         </View>
 

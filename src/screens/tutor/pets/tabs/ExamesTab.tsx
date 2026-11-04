@@ -1,75 +1,84 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import type { Exame } from '../../../../interfaces/exame';
-import { getExamesByPet } from '../../../../services/exameService';
-import { formatDateBr } from '../../../../services/dateUtils';
+import { View } from 'react-native';
+import type { Exame, ExameStatus } from '../../../../interfaces/exame';
+import { useChangeExameStatus, useDeleteExame, useExames } from '../../../../hooks/useExames';
+import { useFormTarget, useRecordDeletion, useStatusDialog } from '../../../../hooks/useRecordDialogs';
+import { formatDateBr } from '../../../../utils/dateUtils';
 import { RecordCard } from '../../../../components/RecordCard';
+import { RecordActions } from '../../../../components/RecordActions';
+import { SectionAddHeader } from '../../../../components/SectionAddHeader';
 import { EmptyState } from '../../../../components/EmptyState';
 import { FormModal } from '../../../../components/FormModal';
+import { DeleteRecordModal } from '../../../../components/DeleteRecordModal';
+import { StatusChangeModal } from '../../../../components/StatusChangeModal';
 import { ExameForm } from '../forms/ExameForm';
-import { petDetailStyles as styles } from '../../../../styles/tutor/petDetail.styles';
+import { useThemedStyles } from '../../../../theme/useThemedStyles';
+import { createPetDetailStyles } from '../../../../styles/tutor/petDetail.styles';
 
 interface ExamesTabProps {
   petId: number;
 }
 
-export function ExamesTab({ petId }: ExamesTabProps) {
-  const [exames, setExames] = useState<Exame[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [reloadToken, setReloadToken] = useState(0);
-  const [showAddModal, setShowAddModal] = useState(false);
+const STATUS_OPTIONS = [
+  { label: 'SOLICITADO', value: 'SOLICITADO' },
+  { label: 'REALIZADO', value: 'REALIZADO' },
+  { label: 'RESULTADO DISPONÍVEL', value: 'RESULTADO_DISPONIVEL' },
+];
 
-  useEffect(() => {
-    let cancelled = false;
-    getExamesByPet(petId)
-      .then((data) => {
-        if (!cancelled) setExames(data);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [petId, reloadToken]);
+export function ExamesTab({ petId }: ExamesTabProps) {
+  const styles = useThemedStyles(createPetDetailStyles);
+  const { data: exames = [], isLoading } = useExames(petId);
+
+  const form = useFormTarget<Exame>();
+  const removal = useRecordDeletion<Exame>(useDeleteExame(petId), (exame) => exame.idExame, (exame) => exame.nome);
+  const status = useStatusDialog<Exame, ExameStatus>(useChangeExameStatus(petId), (exame) => exame.idExame);
 
   return (
-    <View style={{ gap: 8 }}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>EXAMES</Text>
-        <TouchableOpacity onPress={() => setShowAddModal(true)}>
-          <Text style={styles.addLink}>+ ADICIONAR</Text>
-        </TouchableOpacity>
-      </View>
+    <View style={styles.section}>
+      <SectionAddHeader title="EXAMES" onAdd={form.openNew} />
 
-      {!loading &&
+      {!isLoading &&
         (exames.length === 0 ? (
           <EmptyState message="Nenhum exame registrado." />
         ) : (
           exames.map((exame) => (
-            <RecordCard
-              key={exame.idExame}
-              title={exame.nome}
-              badge={exame.status}
-              lines={[
-                [exame.clinica, exame.dataSolicitacao ? `solicitado ${formatDateBr(exame.dataSolicitacao)}` : null]
-                  .filter(Boolean)
-                  .join(' · '),
-                exame.resultado ?? undefined,
-              ].filter((line): line is string => Boolean(line))}
-            />
+            <View key={exame.idExame} style={styles.recordBlock}>
+              <RecordCard
+                title={exame.nome}
+                badge={exame.status}
+                lines={[
+                  [exame.clinica, exame.dataSolicitacao ? `solicitado ${formatDateBr(exame.dataSolicitacao)}` : null]
+                    .filter(Boolean)
+                    .join(' · '),
+                  exame.resultado ?? undefined,
+                ].filter((line): line is string => Boolean(line))}
+              />
+              <RecordActions
+                actions={[
+                  { label: 'ALTERAR STATUS', onPress: () => status.open(exame) },
+                  { label: 'EDITAR', onPress: () => form.openEdit(exame) },
+                  { label: 'EXCLUIR', destructive: true, onPress: () => removal.ask(exame) },
+                ]}
+              />
+            </View>
           ))
         ))}
 
-      <FormModal visible={showAddModal} title="Novo exame" onClose={() => setShowAddModal(false)}>
-        <ExameForm
-          petId={petId}
-          onSuccess={() => {
-            setShowAddModal(false);
-            setReloadToken((token) => token + 1);
-          }}
-        />
+      <FormModal
+        visible={form.target !== null}
+        title={form.target?.record ? 'Editar exame' : 'Novo exame'}
+        onClose={form.close}
+      >
+        {form.target && <ExameForm petId={petId} record={form.target.record} onSuccess={form.close} />}
       </FormModal>
+
+      <StatusChangeModal
+        {...status.modalProps}
+        title="Status do exame"
+        options={STATUS_OPTIONS}
+        current={status.target?.status ?? null}
+      />
+
+      <DeleteRecordModal {...removal.modalProps} />
     </View>
   );
 }

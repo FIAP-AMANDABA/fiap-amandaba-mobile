@@ -1,20 +1,20 @@
-import React from 'react';
-import { View, Text, Image, StatusBar } from 'react-native';
+import { View, Text, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../interfaces/navigation';
 import { GradientButton } from '../../components/GradientButton';
-import { welcomeStyles as styles } from '../../styles/auth/welcome.styles';
+import { useThemedStyles } from '../../theme/useThemedStyles';
+import { createWelcomeStyles } from '../../styles/auth/welcome.styles';
 
 const heroImage = require('../../../assets/images/hero-onboarding.png');
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Welcome'>;
 
 export default function WelcomeScreen({ navigation }: Props) {
+  const styles = useThemedStyles(createWelcomeStyles);
+
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-
       <View style={styles.hero}>
         <Image source={heroImage} style={styles.heroImage} resizeMode="contain" />
       </View>

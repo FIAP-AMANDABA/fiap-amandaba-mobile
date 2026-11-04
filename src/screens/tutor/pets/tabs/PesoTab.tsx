@@ -1,104 +1,149 @@
-import React, { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { View, Text } from 'react-native';
 import type { Peso } from '../../../../interfaces/peso';
-import { getPesosByPet, registerPeso } from '../../../../services/pesoService';
-import { formatDateBr } from '../../../../services/dateUtils';
+import { useDeletePeso, usePesos, useRegisterPeso } from '../../../../hooks/usePesos';
+import { buildPesoInput } from '../../../../domain/recordInputs';
+import { getErrorMessage } from '../../../../services/http';
+import { formatDateBr } from '../../../../utils/dateUtils';
+import { formatWeight } from '../../../../utils/formatUtils';
 import { CurrentWeightCard } from '../../../../components/CurrentWeightCard';
 import { GradientButton } from '../../../../components/GradientButton';
 import { FormInput } from '../../../../components/FormInput';
 import { EmptyState } from '../../../../components/EmptyState';
-import { petDetailStyles as styles } from '../../../../styles/tutor/petDetail.styles';
+import { FormModal } from '../../../../components/FormModal';
+import { RecordActions } from '../../../../components/RecordActions';
+import { DeleteRecordModal } from '../../../../components/DeleteRecordModal';
+import { PesoForm } from '../forms/PesoForm';
+import { useThemedStyles } from '../../../../theme/useThemedStyles';
+import { createPetDetailStyles } from '../../../../styles/tutor/petDetail.styles';
 
 interface PesoTabProps {
   petId: number;
 }
 
 export function PesoTab({ petId }: PesoTabProps) {
-  const [pesos, setPesos] = useState<Peso[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const styles = useThemedStyles(createPetDetailStyles);
+  const { data: pesos = [], isLoading, error: loadError } = usePesos(petId);
+  const registerPeso = useRegisterPeso(petId);
+  const deletePeso = useDeletePeso(petId);
+
   const [showForm, setShowForm] = useState(false);
   const [novoPeso, setNovoPeso] = useState('');
-  const [saving, setSaving] = useState(false);
-
-  const load = () => {
-    setLoading(true);
-    getPesosByPet(petId)
-      .then((data) =>
-        setPesos([...data].sort((a, b) => new Date(b.dataMedicao).getTime() - new Date(a.dataMedicao).getTime()))
-      )
-      .catch((err) => setError(err instanceof Error ? err.message : 'Erro ao carregar peso.'))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(load, [petId]);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<Peso | null>(null);
+  const [deleting, setDeleting] = useState<Peso | null>(null);
 
   const handleRegister = async () => {
-    const parsed = Number(novoPeso.replace(',', '.'));
-    if (!parsed || parsed <= 0) {
-      setError('Informe um peso válido.');
+    setValidationError(null);
+
+    const result = buildPesoInput(novoPeso);
+    if (!result.ok) {
+      setValidationError(result.error);
       return;
     }
 
-    setSaving(true);
     try {
-      await registerPeso(petId, parsed, new Date().toISOString());
+      await registerPeso.mutateAsync(result.input);
       setNovoPeso('');
       setShowForm(false);
-      load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao registrar peso.');
-    } finally {
-      setSaving(false);
+    } catch {
+      // a mensagem fica em registerPeso.error
     }
   };
 
-  if (loading) return null;
+  const handleDelete = async () => {
+    if (!deleting) return;
+    try {
+      await deletePeso.mutateAsync(deleting.idHistoricoPeso);
+      setDeleting(null);
+    } catch {
+      // a mensagem aparece no modal (deletePeso.error)
+    }
+  };
+
+  if (isLoading) return null;
+
+  const errorMessage =
+    validationError ??
+    (registerPeso.error ? getErrorMessage(registerPeso.error, 'Erro ao registrar peso.') : null) ??
+    (loadError ? getErrorMessage(loadError, 'Erro ao carregar peso.') : null);
 
   const atual = pesos[0];
   const historico = pesos.slice(1);
 
+  const actionsFor = (peso: Peso) => [
+    { label: 'EDITAR', onPress: () => setEditing(peso) },
+    {
+      label: 'EXCLUIR',
+      destructive: true,
+      onPress: () => {
+        deletePeso.reset();
+        setDeleting(peso);
+      },
+    },
+  ];
+
   return (
     <View style={styles.tabContent}>
       {atual ? (
-        <CurrentWeightCard peso={atual.peso} dataMedicao={formatDateBr(atual.dataMedicao)} />
+        <View style={styles.recordBlock}>
+          <CurrentWeightCard peso={atual.peso} dataMedicao={formatDateBr(atual.dataMedicao)} />
+          <RecordActions actions={actionsFor(atual)} />
+        </View>
       ) : (
         <EmptyState message="Nenhuma medição de peso registrada." />
       )}
 
       {showForm ? (
-        <View style={{ gap: 8 }}>
+        <View style={styles.section}>
           <FormInput
             placeholder="PESO EM KG"
             value={novoPeso}
             onChangeText={setNovoPeso}
             keyboardType="decimal-pad"
           />
-          <GradientButton label={saving ? 'SALVANDO...' : 'SALVAR PESO'} onPress={saving ? undefined : handleRegister} />
+          <GradientButton
+            label={registerPeso.isPending ? 'SALVANDO...' : 'SALVAR PESO'}
+            onPress={registerPeso.isPending ? undefined : handleRegister}
+          />
         </View>
       ) : (
         <GradientButton label="REGISTRAR PESO" onPress={() => setShowForm(true)} />
       )}
 
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>HISTÓRICO</Text>
         {historico.length === 0 ? (
           <EmptyState message="Sem histórico anterior." />
         ) : (
-          <View style={{ gap: 8 }}>
+          <View style={styles.historyList}>
             {historico.map((item) => (
-              <View key={item.idHistoricoPeso} style={styles.historyRow}>
-                <Text style={styles.historyValue}>
-                  {item.peso.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} kg
-                </Text>
-                <Text style={styles.historyDate}>{formatDateBr(item.dataMedicao)}</Text>
+              <View key={item.idHistoricoPeso} style={styles.recordBlock}>
+                <View style={styles.historyRow}>
+                  <Text style={styles.historyValue}>{formatWeight(item.peso)} kg</Text>
+                  <Text style={styles.historyDate}>{formatDateBr(item.dataMedicao)}</Text>
+                </View>
+                <RecordActions actions={actionsFor(item)} />
               </View>
             ))}
           </View>
         )}
       </View>
+
+      <FormModal visible={editing !== null} title="Editar medição" onClose={() => setEditing(null)}>
+        {editing && <PesoForm petId={petId} record={editing} onSuccess={() => setEditing(null)} />}
+      </FormModal>
+
+      <DeleteRecordModal
+        visible={deleting !== null}
+        recordLabel={deleting ? `${formatWeight(deleting.peso)} kg · ${formatDateBr(deleting.dataMedicao)}` : ''}
+        isPending={deletePeso.isPending}
+        errorMessage={deletePeso.error ? getErrorMessage(deletePeso.error, 'Não foi possível excluir.') : null}
+        onCancel={() => setDeleting(null)}
+        onConfirm={handleDelete}
+      />
     </View>
   );
 }

@@ -1,4 +1,3 @@
-import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { CuidadosStackParamList } from '../interfaces/navigation';
 import CuidadosPickerScreen from '../screens/tutor/cuidados/CuidadosPickerScreen';

@@ -1,16 +1,18 @@
-import React from 'react';
 import { View, Text } from 'react-native';
 import type { Pet } from '../../../../interfaces/pet';
 import { InfoRow } from '../../../../components/InfoRow';
-import { formatDateBr } from '../../../../services/dateUtils';
-import { formatEnumLabel } from '../../../../services/formatUtils';
-import { petDetailStyles as styles } from '../../../../styles/tutor/petDetail.styles';
+import { formatDateBr } from '../../../../utils/dateUtils';
+import { formatEnumLabel } from '../../../../utils/formatUtils';
+import { useThemedStyles } from '../../../../theme/useThemedStyles';
+import { createPetDetailStyles } from '../../../../styles/tutor/petDetail.styles';
 
 interface ResumoTabProps {
   pet: Pet;
 }
 
 export function ResumoTab({ pet }: ResumoTabProps) {
+  const styles = useThemedStyles(createPetDetailStyles);
+
   return (
     <View style={styles.tabContent}>
       <View style={styles.section}>
