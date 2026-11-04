@@ -1,4 +1,4 @@
-import { View, ScrollView } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { PerfilStackParamList } from '../../../interfaces/navigation';
@@ -29,6 +29,11 @@ export default function SobreScreen({ navigation }: Props) {
         <View style={styles.card}>
           <InfoRow label="Aplicativo" value={info.name} />
           <InfoRow label="Versão" value={info.version} />
+          <InfoRow label="Commit" value={info.commitShort} />
+          <Text style={styles.hashLabel}>Hash completo do commit</Text>
+          <Text style={styles.hash} selectable>
+            {info.commitHash}
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>

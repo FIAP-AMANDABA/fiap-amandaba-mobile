@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 import type { Palette } from '../../theme/palettes';
 import { spacing } from '../../theme/spacing';
+import { typography } from '../../theme/typography';
 
 export const createSobreStyles = (c: Palette) =>
   StyleSheet.create({
@@ -16,5 +17,15 @@ export const createSobreStyles = (c: Palette) =>
       backgroundColor: c.surface,
       borderRadius: 12,
       padding: spacing.md,
+    },
+    hashLabel: {
+      ...typography.caption,
+      color: c.textMuted,
+      marginTop: spacing.sm,
+    },
+    hash: {
+      ...typography.bodySemiBold,
+      color: c.text,
+      marginTop: 2,
     },
   });
