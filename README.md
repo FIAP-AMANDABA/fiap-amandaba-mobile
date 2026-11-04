@@ -10,7 +10,7 @@ Entrega final (Sprint 4) de Mobile Application Development, FIAP, Challenge 2026
 | Diego Andrade | RM566385 |
 | Grazielle Alencar | RM561529 |
 | Julia Corrêa | RM564870 |
-| Rafel Kubagawa | RM565572 |
+| Rafael Kubagawa | RM565572 |
 | Vinicius Soteras | RM566230 |
 
 ## Links
